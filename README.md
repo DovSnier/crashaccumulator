@@ -1,0 +1,5 @@
+# crashaccumulator
+Android Crash Monitor
+
+
+
