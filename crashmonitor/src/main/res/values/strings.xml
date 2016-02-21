@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">crashmonitor</string>
+    <string name="crash_error">程序出错啦!</string>
 </resources>

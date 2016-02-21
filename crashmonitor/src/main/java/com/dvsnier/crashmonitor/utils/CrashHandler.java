@@ -8,6 +8,8 @@ import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.dvsnier.crashmonitor.R;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -176,7 +178,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
             @Override
             public void run() {
                 Looper.prepare();
-                Toast.makeText(context, "程序出错啦!", Toast.LENGTH_LONG).show();
+                Toast.makeText(context, context.getResources().getString(R.string.crash_error), Toast.LENGTH_LONG).show();
                 String fileName = "crash_" + getPrintToFileTime() + ".log";
                 File file = new File(directory, fileName);
                 if (!file.exists()) {
