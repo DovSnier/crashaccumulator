@@ -66,12 +66,24 @@ task sourcesJar(type: Jar) {
 }
 task javadoc(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
+    classpath += configurations.compile
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
 }
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
     from javadoc.destinationDir
 }
+javadoc {
+    options{
+        encoding "UTF-8"
+        charSet 'UTF-8'
+        author true
+        version true
+        links "http://docs.oracle.com/javase/7/docs/api"
+        title "crashmonitor"
+    }
+}
+
 artifacts {
     archives javadocJar
     archives sourcesJar
@@ -84,7 +96,7 @@ bintray {
     configurations = ['archives']
     pkg {
         repo = "maven"
-        name = "CrashMonitor"
+        name = "AndroidComponent"
         websiteUrl = siteUrl
         vcsUrl = gitUrl
         licenses = ["Apache-2.0"]
