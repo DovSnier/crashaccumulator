@@ -2,7 +2,6 @@ package com.dvsnier.crashmonitor.utils;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
-import android.content.Intent;
 import android.os.Environment;
 import android.os.Looper;
 import android.util.Log;
@@ -23,18 +22,21 @@ import java.text.SimpleDateFormat;
  * </pre>
  *
  * @author lizw
- * @version 1.2.2
+ * @version 1.2.3
  * @since jdk 1.7
  */
 public class CrashHandler implements Thread.UncaughtExceptionHandler {
 
     public static final String TAG = "CrashHandler";
     private static String directory = "";
-    private static boolean DEBUG = false;
+    /* the current runtime mode*/
+    protected static boolean DEBUG = false;
     private Thread.UncaughtExceptionHandler mDefaultHandler;
-    private Context context;
+    /* the context object*/
+    protected Context context;
     private static CrashHandler crashHandler;
-    private StorageStrategy storageState;
+    /* the current storage strategy*/
+    protected StorageStrategy storageState;
 
     private CrashHandler() {
     }
@@ -59,6 +61,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
      * the init global default uncaught exception handler <br>
      * 2015-5-13
      *
+     * @param context {@link Context}
      * @version 0.0.2
      */
     public void init(Context context) {
@@ -66,18 +69,59 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
         Thread.setDefaultUncaughtExceptionHandler(this);
         mDefaultHandler = Thread.getDefaultUncaughtExceptionHandler();
         storageState = StorageStrategy.STRATEGY_NONE;
-        makeFile(context);
+        inspectionAndInitializedFileSystem(context);
     }
 
     /**
-     * to make crash directory structure<br>
+     * the init global default uncaught exception handler <br>
      * 2015-5-13
      *
-     * @version 1.0.4
+     * @param context      {@link Context}
+     * @param storageState {@link StorageStrategy}
+     * @version 0.0.3
      */
-    protected void makeFile(Context context) {
-        String appAbsolutePath = inspectionPath();
-        File fileDate = inspectionLegalityPath(inspectionLegalityPath(appAbsolutePath), getPrintToDirectoryTime());
+    public final void init(Context context, StorageStrategy storageState) {
+        this.context = context;
+        Thread.setDefaultUncaughtExceptionHandler(this);
+        mDefaultHandler = Thread.getDefaultUncaughtExceptionHandler();
+        this.storageState = storageState;
+        inspectionAndInitializedFileSystem(context, storageState);
+    }
+
+    /**
+     * to inspection and to initiation crash directory structure<br>
+     * 2015-5-13
+     *
+     * @param context {@link Context}
+     * @version 1.0.5
+     */
+    protected void inspectionAndInitializedFileSystem(Context context) {
+        String appAbsolutePath = dispatchPath();
+        File fileDate = obtainFile(appAbsolutePath);
+        directory = fileDate.getAbsolutePath();
+        if (DEBUG) {
+            Log.i(CrashHandler.class.getSimpleName(), "the current crash path is " + directory);
+        }
+    }
+
+    private File obtainFile(String appAbsolutePath) {
+        return inspectionLegalityPath(inspectionLegalityPath(appAbsolutePath), getPrintToDirectoryTime());
+    }
+
+    /**
+     * to inspection and to initiation crash directory structure<br>
+     * 2015-5-13
+     *
+     * @param context      {@link Context}
+     * @param storageState {@link StorageStrategy}
+     * @version 1.0.6
+     */
+    protected void inspectionAndInitializedFileSystem(Context context, StorageStrategy storageState) {
+        if (null == storageState) {
+            throw new IllegalArgumentException("the current storage strategy must not be empty.");
+        }
+        String appAbsolutePath = dispatchPath();
+        File fileDate = obtainFile(appAbsolutePath);
         directory = fileDate.getAbsolutePath();
         if (DEBUG) {
             Log.i(CrashHandler.class.getSimpleName(), "the current crash path is " + directory);
@@ -109,13 +153,30 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
         return file;
     }
 
-    private String inspectionPath() {
-        String path = inspectionAbsolutePath();
+    private String dispatchPath() {
+        String path = null;
+        if (storageState != StorageStrategy.STRATEGY_NONE || storageState != StorageStrategy.STRATEGY_NO_RECOMMEND) {
+            path = interruptPath(storageState);
+        } else {
+            path = interruptPath();
+        }
 //        Log.d(TAG, "the current inspection path is " + path);
         return path;
     }
 
-    private String inspectionAbsolutePath() {
+    private String interruptPath(StorageStrategy storageState) {
+        String appAbsolutePath = null;
+        if (storageState == StorageStrategy.STRATEGY_INTERNAL) {
+            appAbsolutePath = context.getDir("crash", Context.MODE_PRIVATE).toString();
+        } else if (storageState == StorageStrategy.STRATEGY_EXTERNAL) {
+            appAbsolutePath = interruptPath();
+        } else {
+            // nothing to do
+        }
+        return appAbsolutePath;
+    }
+
+    private String interruptPath() {
         String appAbsolutePath = null;
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
             try {
@@ -153,33 +214,33 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
      * the custom handle exception <br>
      * 2015-5-13
      *
-     * @param ex {@link Throwable}
+     * @param throwable {@link Throwable}
      * @return true said developers to handle the exception, is responsible for the submission for the system to deal with by default
-     * @version 0.0.1
+     * @version 0.0.2
      */
-    private boolean handleException(final Throwable ex) {
-        if (ex == null) {
+    private boolean handleException(final Throwable throwable) {
+        if (throwable == null) {
             return false;
         }
         StringWriter writer = new StringWriter();
         PrintWriter printWriter = new PrintWriter(writer);
-        ex.printStackTrace(printWriter);
+        throwable.printStackTrace(printWriter);
         try {
-            Throwable cause = ex.getCause();
+            Throwable cause = throwable.getCause();
             cause.printStackTrace(printWriter);
         } catch (NullPointerException e) {
         } finally {
             printWriter.close();
         }
         final String result = writer.toString();
-        final String message = ex.getMessage();
+        final String message = throwable.getMessage();
         new Thread() {
 
             @Override
             public void run() {
                 Looper.prepare();
                 Toast.makeText(context, context.getResources().getString(R.string.crash_error), Toast.LENGTH_LONG).show();
-                String fileName = "crash_" + getPrintToFileTime() + ".log";
+                String fileName = obtainFileName();
                 File file = new File(directory, fileName);
                 if (!file.exists()) {
                     try {
@@ -207,6 +268,10 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
             }
         }.start();
         return true;
+    }
+
+    private String obtainFileName() {
+        return "crash_" + getPrintToFileTime() + ".log";
     }
 
 
@@ -241,12 +306,12 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
      * 2015-4-28
      *
      * @return the current system date
-     * @version 0.0.1
+     * @version 0.0.2
      */
     @SuppressLint("SimpleDateFormat")
     public static String getPrintToFileTime() {
         String date = "";
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MMdd_hhmm");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MMdd_hhmm_ss");
         date = sdf.format(System.currentTimeMillis());
         return date;
     }
