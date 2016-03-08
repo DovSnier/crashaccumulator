@@ -22,7 +22,7 @@ import java.text.SimpleDateFormat;
  * </pre>
  *
  * @author lizw
- * @version 1.2.3
+ * @version 1.2.5
  * @since jdk 1.7
  */
 public class CrashHandler implements Thread.UncaughtExceptionHandler {
@@ -64,7 +64,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
      * @param context {@link Context}
      * @version 0.0.2
      */
-    public void init(Context context) {
+    public final void init(Context context) {
         this.context = context;
         Thread.setDefaultUncaughtExceptionHandler(this);
         mDefaultHandler = Thread.getDefaultUncaughtExceptionHandler();
@@ -87,6 +87,19 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
         this.storageState = storageState;
         inspectionAndInitializedFileSystem(context, storageState);
     }
+
+    /**
+     * the stop crash handle instance
+     *
+     * @version 1.0.0
+     */
+    public final void stop() {
+        storageState = StorageStrategy.STRATEGY_NONE;
+        if (null != crashHandler) {
+            crashHandler = null;
+        }
+    }
+
 
     /**
      * to inspection and to initiation crash directory structure<br>
@@ -155,10 +168,10 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
 
     private String dispatchPath() {
         String path = null;
-        if (storageState != StorageStrategy.STRATEGY_NONE || storageState != StorageStrategy.STRATEGY_NO_RECOMMEND) {
-            path = interruptPath(storageState);
-        } else {
+        if (storageState == StorageStrategy.STRATEGY_NONE || storageState == StorageStrategy.STRATEGY_NO_RECOMMEND) {
             path = interruptPath();
+        } else {
+            path = interruptPath(storageState);
         }
 //        Log.d(TAG, "the current inspection path is " + path);
         return path;
@@ -245,6 +258,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
                 if (!file.exists()) {
                     try {
                         file.createNewFile();
+                        file.setWritable(Boolean.TRUE);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -311,7 +325,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
     @SuppressLint("SimpleDateFormat")
     public static String getPrintToFileTime() {
         String date = "";
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy_MMdd_hhmm_ss");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddhhmmss");
         date = sdf.format(System.currentTimeMillis());
         return date;
     }
@@ -360,10 +374,11 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
      * set the current equipment abnormal storage condition
      *
      * @param storageState {@link StorageStrategy}
-     * @version 0.0.1
+     * @version 0.0.2
      */
     public void setStorageState(StorageStrategy storageState) {
         this.storageState = storageState;
+        init(context, storageState);
     }
 
     /**
