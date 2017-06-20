@@ -3,14 +3,15 @@ apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.jfrog.bintray'
 
 version = "0.0.2"
+group = "com.dvsnier"
 android {
-    compileSdkVersion 23
-    buildToolsVersion "23.0.2"
+    compileSdkVersion 25
+    buildToolsVersion '25.0.2'
     resourcePrefix "dvs_"
 
     defaultConfig {
         minSdkVersion 10
-        targetSdkVersion 23
+        targetSdkVersion 25
         versionCode 2
         versionName version
     }
@@ -25,18 +26,18 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }
+
 def siteUrl = 'https://github.com/DovSnier/crashaccumulator/'
 def gitUrl = 'git@github.com:DovSnier/crashaccumulator.git'
-group = "com.dvsnier.zw"
 install {
     repositories.mavenInstaller {
-        // This generates POM.xml with proper parameters
         pom {
             project {
                 packaging 'aar'
                 // Add your description here
                 name 'Android Crash Monitor'
                 url siteUrl
+
                 // Set your license
                 licenses {
                     license {
@@ -44,13 +45,15 @@ install {
                         url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
                     }
                 }
+
                 developers {
                     developer {
-                        id 'lizhenwei'
-                        name 'DovSnier'
-                        email '1305314861@qq.com'
+                        id 'dovsnier'
+                        name 'dovsnier'
+                        email '3086722095@qq.com'
                     }
                 }
+
                 scm {
                     connection gitUrl
                     developerConnection gitUrl
@@ -66,8 +69,8 @@ task sourcesJar(type: Jar) {
 }
 task javadoc(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
-    classpath += configurations.compile
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    failOnError false
 }
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
@@ -96,7 +99,8 @@ bintray {
     configurations = ['archives']
     pkg {
         repo = "maven"
-        name = "AndroidComponent"
+        name = "crashmonitor"
+        userOrg = 'dovsnier'
         websiteUrl = siteUrl
         vcsUrl = gitUrl
         licenses = ["Apache-2.0"]
