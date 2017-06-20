@@ -1,4 +1,4 @@
-package com.dvsnier.crashmonitor.bean;
+package com.dvsnier.monitor.bean;
 
 import android.os.Parcel;
 import android.os.Parcelable;
@@ -8,7 +8,6 @@ import android.os.Parcelable;
  *
  * @author dovsnier
  * @version 1.0.0
- * @date 2015/12/15.
  * @since JDK 1.7
  */
 public class AbstractBaseBean implements Parcelable {

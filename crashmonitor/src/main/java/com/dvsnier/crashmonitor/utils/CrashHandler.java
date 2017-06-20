@@ -8,6 +8,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.dvsnier.crashmonitor.R;
+import com.dvsnier.monitor.common.BaseHandler;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -25,15 +26,11 @@ import java.text.SimpleDateFormat;
  * @version 1.2.5
  * @since jdk 1.7
  */
-public class CrashHandler implements Thread.UncaughtExceptionHandler {
+public class CrashHandler extends BaseHandler implements Thread.UncaughtExceptionHandler {
 
-    public static final String TAG = "CrashHandler";
     private static String directory = "";
-    /* the current runtime mode*/
-    protected static boolean DEBUG = false;
     private Thread.UncaughtExceptionHandler mDefaultHandler;
-    /* the context object*/
-    protected Context context;
+
     private static CrashHandler crashHandler;
     /* the current storage strategy*/
     protected StorageStrategy storageState;

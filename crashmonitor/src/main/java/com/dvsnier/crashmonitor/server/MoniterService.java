@@ -26,10 +26,18 @@ public class MoniterService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
+        initializedMoniterEnvironment();
+    }
+
+    private void initializedCrashServer() {
         crashHandler.init(getApplicationContext());
         if (DEBUG) {
             Log.i(TAG, "the current log monito server is started");
         }
+    }
+
+    protected void initializedMoniterEnvironment() {
+        initializedCrashServer();
     }
 
     @Override

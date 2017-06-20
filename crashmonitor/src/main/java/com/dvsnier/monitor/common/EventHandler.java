@@ -1,22 +1,20 @@
-package com.dvsnier.crashmonitor.utils;
+package com.dvsnier.monitor.common;
 
 import android.content.Context;
 
 /**
- * The event handler<br/>
+ * The event handler
  *
  * @author dovsnier
  * @version 1.0.0
  * @since JDK 1.7
  */
-public class EventHandler {
+public class EventHandler extends BaseHandler {
 
-    public static final String TAG = "EventHandler";
     private Context context;
-    private static boolean DEBUG = false;
 
     /**
-     * The event or message processor<br/>
+     * The event or message processor
      *
      * @author dovsnier
      * @version 1.0.0

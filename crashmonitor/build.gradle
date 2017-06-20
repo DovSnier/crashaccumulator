@@ -7,7 +7,7 @@ group = "com.dvsnier"
 android {
     compileSdkVersion 25
     buildToolsVersion '25.0.2'
-    resourcePrefix "dvs_"
+//    resourcePrefix "dvs_"
 
     defaultConfig {
         minSdkVersion 10
