@@ -4,6 +4,10 @@ apply plugin: 'com.jfrog.bintray'
 
 version = "0.0.2"
 group = "com.dvsnier"
+
+def siteUrl = 'https://github.com/DovSnier/crashaccumulator/'
+def gitUrl = 'git@github.com:DovSnier/crashaccumulator.git'
+
 android {
     compileSdkVersion 25
     buildToolsVersion '25.0.2'
@@ -27,8 +31,6 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }
 
-def siteUrl = 'https://github.com/DovSnier/crashaccumulator/'
-def gitUrl = 'git@github.com:DovSnier/crashaccumulator.git'
 install {
     repositories.mavenInstaller {
         pom {
@@ -38,7 +40,6 @@ install {
                 name 'Android Crash Monitor'
                 url siteUrl
 
-                // Set your license
                 licenses {
                     license {
                         name 'The Apache Software License, Version 2.0'
@@ -63,19 +64,23 @@ install {
         }
     }
 }
+
 task sourcesJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
     classifier = 'sources'
 }
+
 task javadoc(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
     failOnError false
 }
+
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
     from javadoc.destinationDir
 }
+
 javadoc {
     options {
         encoding "UTF-8"
@@ -91,8 +96,10 @@ artifacts {
     archives javadocJar
     archives sourcesJar
 }
+
 Properties properties = new Properties()
 properties.load(project.rootProject.file('local.properties').newDataInputStream())
+
 bintray {
     user = properties.getProperty("bintray.user")
     key = properties.getProperty("bintray.apikey")
