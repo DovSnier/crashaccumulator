@@ -64,12 +64,7 @@ public class CrashHandler extends BaseHandler implements Thread.UncaughtExceptio
      * @version 0.0.2
      */
     public final void init(Context context) {
-        this.context = context;
-        DEBUG = this.context.getResources().getBoolean(R.bool.debug_monitor_server);
-        Thread.setDefaultUncaughtExceptionHandler(this);
-        uncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
-        storageStrategy = StorageStrategy.STRATEGY_NONE;
-        inspectionAndInitializedFileSystem(context);
+        execute(context, null);
     }
 
     /**
@@ -81,12 +76,21 @@ public class CrashHandler extends BaseHandler implements Thread.UncaughtExceptio
      * @version 0.0.3
      */
     public final void init(Context context, StorageStrategy storageState) {
+        execute(context, storageState);
+    }
+
+    protected void execute(Context context, StorageStrategy storageState) {
         this.context = context;
         DEBUG = this.context.getResources().getBoolean(R.bool.debug_monitor_server);
         Thread.setDefaultUncaughtExceptionHandler(this);
         uncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
-        this.storageStrategy = storageState;
-        inspectionAndInitializedFileSystem(context, storageState);
+        if (null == storageState) {
+            this.storageStrategy = StorageStrategy.STRATEGY_NONE;
+            inspectionAndInitializedFileSystem(context);
+        } else {
+            this.storageStrategy = storageState;
+            inspectionAndInitializedFileSystem(context, storageState);
+        }
     }
 
     /**
