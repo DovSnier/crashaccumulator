@@ -2,12 +2,15 @@ package com.dvsnier.crashmonitor.utils;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Environment;
 import android.os.Looper;
 import android.util.Log;
 import android.widget.Toast;
 
 import com.dvsnier.crashmonitor.R;
+import com.dvsnier.monitor.common.BaseHandler;
+import com.dvsnier.monitor.config.Config;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -15,6 +18,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 /**
  * <pre>
@@ -22,21 +26,17 @@ import java.text.SimpleDateFormat;
  * </pre>
  *
  * @author lizw
- * @version 1.2.5
+ * @version 1.2.6
  * @since jdk 1.7
  */
-public class CrashHandler implements Thread.UncaughtExceptionHandler {
+public class CrashHandler extends BaseHandler implements Thread.UncaughtExceptionHandler {
 
-    public static final String TAG = "CrashHandler";
-    private static String directory = "";
-    /* the current runtime mode*/
-    protected static boolean DEBUG = false;
-    private Thread.UncaughtExceptionHandler mDefaultHandler;
-    /* the context object*/
-    protected Context context;
-    private static CrashHandler crashHandler;
+    protected static String directory = "";
+    protected Thread.UncaughtExceptionHandler uncaughtExceptionHandler;
+    protected static CrashHandler crashHandler;
     /* the current storage strategy*/
-    protected StorageStrategy storageState;
+    protected StorageStrategy storageStrategy;
+    protected SharedPreferences sharedPreferences;
 
     private CrashHandler() {
     }
@@ -49,9 +49,11 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
      * @version 0.0.1
      */
     public static CrashHandler getInstance() {
-        synchronized (CrashHandler.class) {
-            if (null == crashHandler) {
-                crashHandler = new CrashHandler();
+        if (null == crashHandler) {
+            synchronized (CrashHandler.class) {
+                if (null == crashHandler) {
+                    crashHandler = new CrashHandler();
+                }
             }
         }
         return crashHandler;
@@ -65,11 +67,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
      * @version 0.0.2
      */
     public final void init(Context context) {
-        this.context = context;
-        Thread.setDefaultUncaughtExceptionHandler(this);
-        mDefaultHandler = Thread.getDefaultUncaughtExceptionHandler();
-        storageState = StorageStrategy.STRATEGY_NONE;
-        inspectionAndInitializedFileSystem(context);
+        execute(context, null);
     }
 
     /**
@@ -81,11 +79,25 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
      * @version 0.0.3
      */
     public final void init(Context context, StorageStrategy storageState) {
+        execute(context, storageState);
+    }
+
+    protected void execute(Context context, StorageStrategy storageState) {
         this.context = context;
+        DEBUG = this.context.getResources().getBoolean(R.bool.debug_monitor_server);
+        sharedPreferences = this.context.getSharedPreferences(Config.DVS_CONFIG_NAME, Context.MODE_PRIVATE);
         Thread.setDefaultUncaughtExceptionHandler(this);
-        mDefaultHandler = Thread.getDefaultUncaughtExceptionHandler();
-        this.storageState = storageState;
-        inspectionAndInitializedFileSystem(context, storageState);
+        uncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
+        sharedPreferences.edit().putString(Config.Key.KEY_SDK_VERSION, Config.DVS_CONFIG_VERSION).putString(Config.Key.KEY_ENVIRONMENT_MODE, DEBUG ? "debug" : "release").commit();
+        if (null == storageState) {
+            this.storageStrategy = StorageStrategy.STRATEGY_NONE;
+            sharedPreferences.edit().putString(Config.Key.KEY_STRATEGY, StorageStrategy.STRATEGY_NONE.toString()).commit();
+            inspectionAndInitializedFileSystem(context);
+        } else {
+            this.storageStrategy = storageState;
+            sharedPreferences.edit().putString(Config.Key.KEY_STRATEGY, this.storageStrategy.toString()).commit();
+            inspectionAndInitializedFileSystem(context, storageState);
+        }
     }
 
     /**
@@ -94,7 +106,8 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
      * @version 1.0.0
      */
     public final void stop() {
-        storageState = StorageStrategy.STRATEGY_NONE;
+        storageStrategy = StorageStrategy.STRATEGY_NONE;
+        sharedPreferences = null;
         if (null != crashHandler) {
             crashHandler = null;
         }
@@ -113,7 +126,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
         File fileDate = obtainFile(appAbsolutePath);
         directory = fileDate.getAbsolutePath();
         if (DEBUG) {
-            Log.i(CrashHandler.class.getSimpleName(), "the current crash path is " + directory);
+            Log.i(TAG, "the current crash path is " + directory);
         }
     }
 
@@ -137,7 +150,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
         File fileDate = obtainFile(appAbsolutePath);
         directory = fileDate.getAbsolutePath();
         if (DEBUG) {
-            Log.i(CrashHandler.class.getSimpleName(), "the current crash path is " + directory);
+            Log.i(TAG, "the current crash path is " + directory);
         }
     }
 
@@ -168,10 +181,10 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
 
     private String dispatchPath() {
         String path = null;
-        if (storageState == StorageStrategy.STRATEGY_NONE || storageState == StorageStrategy.STRATEGY_NO_RECOMMEND) {
+        if (storageStrategy == StorageStrategy.STRATEGY_NONE || storageStrategy == StorageStrategy.STRATEGY_NO_RECOMMEND) {
             path = interruptPath();
         } else {
-            path = interruptPath(storageState);
+            path = interruptPath(storageStrategy);
         }
 //        Log.d(TAG, "the current inspection path is " + path);
         return path;
@@ -194,33 +207,39 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
         if (Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState())) {
             try {
                 appAbsolutePath = context.getExternalFilesDir("crash").toString();
-                storageState = StorageStrategy.STRATEGY_EXTERNAL;
+                storageStrategy = StorageStrategy.STRATEGY_EXTERNAL;
             } catch (NullPointerException e) {
                 appAbsolutePath = context.getDir("crash", Context.MODE_PRIVATE).toString();
-                storageState = StorageStrategy.STRATEGY_NO_RECOMMEND;
+                storageStrategy = StorageStrategy.STRATEGY_NO_RECOMMEND;
             }
         } else {
             appAbsolutePath = context.getDir("crash", Context.MODE_PRIVATE).toString();
-            storageState = StorageStrategy.STRATEGY_INTERNAL;
+            storageStrategy = StorageStrategy.STRATEGY_INTERNAL;
         }
         return appAbsolutePath;
     }
 
     @Override
     public void uncaughtException(Thread thread, Throwable ex) {
-        if (!handleException(ex) && mDefaultHandler != null) {
-            mDefaultHandler.uncaughtException(thread, ex);
+        if (!handleException(ex) && uncaughtExceptionHandler != null) {
+            uncaughtExceptionHandler.uncaughtException(thread, ex);
         } else {
             try {
                 Thread.sleep(800);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            //TODO the default uncaught handle, maybe your decide
-//            uncaughtHandle();
+            uncaughtHandle();
             //the current default handle is closed application
             android.os.Process.killProcess(android.os.Process.myPid());
         }
+    }
+
+    /**
+     * the default uncaught handle, maybe your decide
+     */
+    protected void uncaughtHandle() {
+        // nothing to do
     }
 
     /**
@@ -253,7 +272,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
             public void run() {
                 Looper.prepare();
                 Toast.makeText(context, context.getResources().getString(R.string.crash_error), Toast.LENGTH_LONG).show();
-                String fileName = obtainFileName();
+                final String fileName = obtainFileName();
                 File file = new File(directory, fileName);
                 if (!file.exists()) {
                     try {
@@ -263,10 +282,11 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
                         e.printStackTrace();
                     }
                 }
+                sharedPreferences.edit().putString(Config.Key.KEY_LAST_NAME, fileName).putLong(Config.Key.KEY_LAST_TIME, System.currentTimeMillis()).commit();
                 FileOutputStream fos = null;
                 try {
                     fos = new FileOutputStream(file, true);
-                    fos.write(("=>" + "date = " + getPrintToTextTime() + "\r\n" + "=>msgs = " + message).getBytes());
+                    fos.write(("=>" + "date = " + getPrintToTextTime() + "\r\n" + "=>msgs = " + String.format(Locale.getDefault(), "%-9s", message)).getBytes());
                     fos.write(result.getBytes());
                     fos.flush();
                 } catch (Exception e) {
@@ -300,7 +320,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
     public static String getPrintToFileTime(String format) {
         String date = "";
         SimpleDateFormat sdf = null;
-        String DEFAULT_FORMAT = "yyyy_MMdd_hhmm_ss";
+        String DEFAULT_FORMAT = "yyyy_MMdd_HHmm_ss";
         if (null != format && !"".equals(format)) {
             try {
                 sdf = new SimpleDateFormat(format);
@@ -325,7 +345,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
     @SuppressLint("SimpleDateFormat")
     public static String getPrintToFileTime() {
         String date = "";
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddhhmmss");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
         date = sdf.format(System.currentTimeMillis());
         return date;
     }
@@ -340,7 +360,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
     @SuppressLint("SimpleDateFormat")
     public static String getPrintToTextTime() {
         String date = "";
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         date = sdf.format(System.currentTimeMillis());
         return date;
     }
@@ -367,7 +387,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
      * @version 0.0.1
      */
     public StorageStrategy getStorageState() {
-        return storageState;
+        return storageStrategy;
     }
 
     /**
@@ -377,7 +397,7 @@ public class CrashHandler implements Thread.UncaughtExceptionHandler {
      * @version 0.0.2
      */
     public void setStorageState(StorageStrategy storageState) {
-        this.storageState = storageState;
+        this.storageStrategy = storageState;
         init(context, storageState);
     }
 
