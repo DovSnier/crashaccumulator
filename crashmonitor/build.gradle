@@ -16,9 +16,10 @@ android {
     defaultConfig {
         minSdkVersion 10
         targetSdkVersion 25
-        versionCode 4
+        versionCode 5
         versionName version
     }
+
     buildTypes {
         release {
             minifyEnabled false
@@ -36,8 +37,8 @@ install {
         pom {
             project {
                 packaging 'aar'
-                // Add your description here
-                name 'Android Crash Monitor'
+                name 'crashmonitor'
+                description 'the android kit of the android crash monitor.'
                 url siteUrl
 
                 licenses {
@@ -79,17 +80,6 @@ task javadoc(type: Javadoc) {
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
     from javadoc.destinationDir
-}
-
-javadoc {
-    options {
-        encoding "UTF-8"
-        charSet 'UTF-8'
-        author true
-        version true
-        links "http://docs.oracle.com/javase/7/docs/api"
-        title "crashmonitor"
-    }
 }
 
 artifacts {
