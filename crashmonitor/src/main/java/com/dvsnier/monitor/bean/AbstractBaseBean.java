@@ -13,17 +13,51 @@ import android.os.Parcelable;
 public class AbstractBaseBean implements Parcelable {
 
     /* the current element id */
-    private long id;
+    protected long id;
     /* the current element version code */
-    private int version;
+    protected int version;
     /* the current element permission describe check digit  */
-    private String seqToken;
+    protected String seqToken;
     /* the current element node flags */
-    private String flag;
+    protected String flag;
+
+    public long getId() {
+        return id;
+    }
+
+    public void setId(long id) {
+        this.id = id;
+    }
+
+    public int getVersion() {
+        return version;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
+    }
+
+    public String getSeqToken() {
+        return seqToken;
+    }
+
+    public void setSeqToken(String seqToken) {
+        this.seqToken = seqToken;
+    }
+
+    public String getFlag() {
+        return flag;
+    }
+
+    public void setFlag(String flag) {
+        this.flag = flag;
+    }
 
 
     @Override
-    public int describeContents() { return 0; }
+    public int describeContents() {
+        return 0;
+    }
 
     @Override
     public void writeToParcel(Parcel dest, int flags) {
@@ -33,7 +67,8 @@ public class AbstractBaseBean implements Parcelable {
         dest.writeString(this.flag);
     }
 
-    public AbstractBaseBean() {}
+    public AbstractBaseBean() {
+    }
 
     protected AbstractBaseBean(Parcel in) {
         this.id = in.readLong();
@@ -42,4 +77,15 @@ public class AbstractBaseBean implements Parcelable {
         this.flag = in.readString();
     }
 
+    public static final Creator<AbstractBaseBean> CREATOR = new Creator<AbstractBaseBean>() {
+        @Override
+        public AbstractBaseBean createFromParcel(Parcel source) {
+            return new AbstractBaseBean(source);
+        }
+
+        @Override
+        public AbstractBaseBean[] newArray(int size) {
+            return new AbstractBaseBean[size];
+        }
+    };
 }
