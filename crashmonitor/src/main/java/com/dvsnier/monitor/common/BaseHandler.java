@@ -8,9 +8,18 @@ import android.content.Context;
 public class BaseHandler {
 
     /* the current class identification*/
-    protected final String TAG = getClass().getSimpleName();
+    protected final String TAG = this.getClass().getSimpleName();
     /* the current runtime mode*/
-    protected static boolean DEBUG = false;
+    protected boolean DEBUG;
     /* the context object*/
     protected Context context;
+
+
+    public Context getContext() {
+        return context;
+    }
+
+    public void setContext(Context context) {
+        this.context = context;
+    }
 }
