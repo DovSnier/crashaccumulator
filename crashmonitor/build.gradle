@@ -105,7 +105,7 @@ bintray {
     key = properties.getProperty("bintray.apikey")
     configurations = ['archives']
     pkg {
-        repo = "maven"
+        repo = "AndroidComponent"
         name = "crashmonitor"
         userOrg = 'dovsnier'
         websiteUrl = siteUrl
