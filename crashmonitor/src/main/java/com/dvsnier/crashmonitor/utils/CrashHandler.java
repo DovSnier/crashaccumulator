@@ -2,6 +2,7 @@ package com.dvsnier.crashmonitor.utils;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Environment;
 import android.os.Looper;
 import android.util.Log;
@@ -9,6 +10,7 @@ import android.widget.Toast;
 
 import com.dvsnier.crashmonitor.R;
 import com.dvsnier.monitor.common.BaseHandler;
+import com.dvsnier.monitor.config.Config;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -34,6 +36,7 @@ public class CrashHandler extends BaseHandler implements Thread.UncaughtExceptio
     protected static CrashHandler crashHandler;
     /* the current storage strategy*/
     protected StorageStrategy storageStrategy;
+    protected SharedPreferences sharedPreferences;
 
     private CrashHandler() {
     }
@@ -82,13 +85,17 @@ public class CrashHandler extends BaseHandler implements Thread.UncaughtExceptio
     protected void execute(Context context, StorageStrategy storageState) {
         this.context = context;
         DEBUG = this.context.getResources().getBoolean(R.bool.debug_monitor_server);
+        sharedPreferences = this.context.getSharedPreferences(Config.DVS_CONFIG_NAME, Context.MODE_PRIVATE);
         Thread.setDefaultUncaughtExceptionHandler(this);
         uncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
+        sharedPreferences.edit().putString(Config.Key.KEY_SDK_VERSION, Config.DVS_CONFIG_VERSION).putString(Config.Key.KEY_ENVIRONMENT_MODE, DEBUG ? "debug" : "release").commit();
         if (null == storageState) {
             this.storageStrategy = StorageStrategy.STRATEGY_NONE;
+            sharedPreferences.edit().putString(Config.Key.KEY_STRATEGY, StorageStrategy.STRATEGY_NONE.toString()).commit();
             inspectionAndInitializedFileSystem(context);
         } else {
             this.storageStrategy = storageState;
+            sharedPreferences.edit().putString(Config.Key.KEY_STRATEGY, this.storageStrategy.toString()).commit();
             inspectionAndInitializedFileSystem(context, storageState);
         }
     }
@@ -100,6 +107,7 @@ public class CrashHandler extends BaseHandler implements Thread.UncaughtExceptio
      */
     public final void stop() {
         storageStrategy = StorageStrategy.STRATEGY_NONE;
+        sharedPreferences = null;
         if (null != crashHandler) {
             crashHandler = null;
         }
@@ -264,7 +272,7 @@ public class CrashHandler extends BaseHandler implements Thread.UncaughtExceptio
             public void run() {
                 Looper.prepare();
                 Toast.makeText(context, context.getResources().getString(R.string.crash_error), Toast.LENGTH_LONG).show();
-                String fileName = obtainFileName();
+                final String fileName = obtainFileName();
                 File file = new File(directory, fileName);
                 if (!file.exists()) {
                     try {
@@ -274,6 +282,7 @@ public class CrashHandler extends BaseHandler implements Thread.UncaughtExceptio
                         e.printStackTrace();
                     }
                 }
+                sharedPreferences.edit().putString(Config.Key.KEY_LAST_NAME, fileName).putLong(Config.Key.KEY_LAST_TIME, System.currentTimeMillis()).commit();
                 FileOutputStream fos = null;
                 try {
                     fos = new FileOutputStream(file, true);
@@ -311,7 +320,7 @@ public class CrashHandler extends BaseHandler implements Thread.UncaughtExceptio
     public static String getPrintToFileTime(String format) {
         String date = "";
         SimpleDateFormat sdf = null;
-        String DEFAULT_FORMAT = "yyyy_MMdd_hhmm_ss";
+        String DEFAULT_FORMAT = "yyyy_MMdd_HHmm_ss";
         if (null != format && !"".equals(format)) {
             try {
                 sdf = new SimpleDateFormat(format);
@@ -336,7 +345,7 @@ public class CrashHandler extends BaseHandler implements Thread.UncaughtExceptio
     @SuppressLint("SimpleDateFormat")
     public static String getPrintToFileTime() {
         String date = "";
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_hhmmss");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd_HHmmss");
         date = sdf.format(System.currentTimeMillis());
         return date;
     }
@@ -351,7 +360,7 @@ public class CrashHandler extends BaseHandler implements Thread.UncaughtExceptio
     @SuppressLint("SimpleDateFormat")
     public static String getPrintToTextTime() {
         String date = "";
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         date = sdf.format(System.currentTimeMillis());
         return date;
     }
