@@ -1,13 +1,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion '25.0.2'
+    compileSdkVersion rootProject.ext.compile_sdk_version
+    buildToolsVersion rootProject.ext.build_tools_version
 
     defaultConfig {
         applicationId "com.dvsnier.crashaccumulator"
-        minSdkVersion 10
-        targetSdkVersion 25
+        minSdkVersion rootProject.ext.min_sdk_version
+        targetSdkVersion rootProject.ext.target_sdk_version
         versionCode 2
         versionName "1.0.1"
     }
@@ -20,6 +20,6 @@ android {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile project(':crashmonitor')
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    implementation project(':crashmonitor')
 }

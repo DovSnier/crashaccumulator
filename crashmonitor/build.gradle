@@ -1,23 +1,20 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.github.dcendents.android-maven'
-apply plugin: 'com.jfrog.bintray'
-
-version = "0.0.3"
-group = "com.dvsnier"
+apply plugin: 'com.novoda.bintray-release'
 
 def siteUrl = 'https://github.com/DovSnier/crashaccumulator/'
 def gitUrl = 'git@github.com:DovSnier/crashaccumulator.git'
 
 android {
-    compileSdkVersion 25
-    buildToolsVersion '25.0.2'
-//    resourcePrefix "dvs_"
+    compileSdkVersion rootProject.ext.compile_sdk_version
+    buildToolsVersion rootProject.ext.build_tools_version
 
     defaultConfig {
-        minSdkVersion 10
-        targetSdkVersion 25
-        versionCode 5
-        versionName version
+        minSdkVersion rootProject.ext.min_sdk_version
+        targetSdkVersion rootProject.ext.target_sdk_version
+        versionCode rootProject.ext.version_code
+        versionName rootProject.ext.version_name
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
@@ -26,44 +23,14 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+
+    lintOptions {
+        abortOnError false
+    }
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-}
-
-install {
-    repositories.mavenInstaller {
-        pom {
-            project {
-                packaging 'aar'
-                name 'crashmonitor'
-                description 'the android kit of the android crash monitor.'
-                url siteUrl
-
-                licenses {
-                    license {
-                        name 'The Apache Software License, Version 2.0'
-                        url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    }
-                }
-
-                developers {
-                    developer {
-                        id 'dovsnier'
-                        name 'dovsnier'
-                        email '3086722095@qq.com'
-                    }
-                }
-
-                scm {
-                    connection gitUrl
-                    developerConnection gitUrl
-                    url siteUrl
-                }
-            }
-        }
-    }
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
 }
 
 task sourcesJar(type: Jar) {
@@ -79,6 +46,7 @@ task javadoc(type: Javadoc) {
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
+    //noinspection GroovyAccessibility
     from javadoc.destinationDir
 }
 
@@ -86,21 +54,21 @@ artifacts {
     archives javadocJar
     archives sourcesJar
 }
-
 Properties properties = new Properties()
 properties.load(project.rootProject.file('local.properties').newDataInputStream())
-
-bintray {
-    user = properties.getProperty("bintray.user")
-    key = properties.getProperty("bintray.apikey")
-    configurations = ['archives']
-    pkg {
-        repo = "AndroidComponent"
-        name = "crashmonitor"
-        userOrg = 'dovsnier'
-        websiteUrl = siteUrl
-        vcsUrl = gitUrl
-        licenses = ["Apache-2.0"]
-        publish = true
-    }
+def user = properties.getProperty("bintray.user")
+def key = properties.getProperty("bintray.apikey")
+publish {
+    repoName = 'AndroidComponent'
+    userOrg = 'dovsnier'
+    groupId = 'com.dvsnier'
+    artifactId = 'crash'
+    publishVersion = rootProject.ext.version_name
+    desc = "the android kit of the android crash monitor,that version is ${rootProject.ext.version_name}"
+    website = siteUrl
+    repository = gitUrl
+    autoPublish = true
+    bintrayUser = user
+    bintrayKey = key
 }
+
