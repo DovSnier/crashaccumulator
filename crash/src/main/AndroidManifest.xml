@@ -1,0 +1,12 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.dvsnier.crash">
+
+    <application
+        android:allowBackup="true"
+        android:label="@string/app_name">
+        <service
+            android:name="com.dvsnier.crash.server.MonitorService"
+            android:enabled="true" />
+    </application>
+
+</manifest>
