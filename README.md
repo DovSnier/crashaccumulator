@@ -8,7 +8,8 @@ Android Crash Monitor 是一款日常开发android 过程中的异常日志记�
    
 #### 使用Gradle构建时添加一下依赖即可:
 ```
-compile 'com.dvsnier:crashmonitor:0.0.3'
+debugImplementation 'com.dvsnier:crash:0.0.4'
+releaseImplementation 'com.dvsnier:crash-no:0.0.4'
 ```
 
 #### 使用前配置
@@ -24,29 +25,12 @@ compile 'com.dvsnier:crashmonitor:0.0.3'
     @Override
     public void onCreate() {
         super.onCreate();
-        initializedServerConfig();
+//        Crash.initialize(this);
+        Crash.initialize(this, true);
+//        Crash.initialize(this, true, "测试崩溃提示语...");
         ...
     }
 
-    /**
-     * the initialized server config
-     *
-     * @version 0.0.2
-     */
-    protected void initializedServerConfig() {
-        Intent intent = new Intent(this, MoniterService.class);
-        startService(intent);
-    }
-
-    /**
-     * to closed server monitor
-     *
-     * @version 0.0.1
-     */
-    protected void stopServer() {
-        Intent intent = new Intent(this, MoniterService.class);
-        stopService(intent);
-    }
 ```
 #### FAQ
 1.默认异常日志文件保存目录为： `/mnt/sdcard/Android/data/package_your_name/files/crash/`
