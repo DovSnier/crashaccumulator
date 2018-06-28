@@ -24,6 +24,6 @@ android {
 
 dependencies {
     implementation fileTree(include: ['*.jar'], dir: 'libs')
-    debugImplementation project(':crashmonitor')
-    releaseImplementation project(':nocrashmonitor')
+    debugImplementation project(':crash')
+    releaseImplementation project(':crash-no')
 }
