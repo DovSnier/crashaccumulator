@@ -26,6 +26,7 @@ public class MonitorService extends Service implements IMonitor, ITag {
     protected static boolean DEBUG;
     private final IBinder myBinder = new MyBinder();
     private final ICrash crash = CrashHandler.getInstance();
+    private boolean isInitialized;
 
     @Override
     public void onCreate() {
@@ -44,6 +45,10 @@ public class MonitorService extends Service implements IMonitor, ITag {
                 ((CrashHandler) crash).setTips(tips);
             }
         }
+        if (!isInitialized) {
+            crash.initialize(getApplicationContext());
+            isInitialized = true;
+        }
         if (DEBUG) {
             Log.i(TAG, getResources().getString(R.string.crash_started_describe));
         }
@@ -58,6 +63,7 @@ public class MonitorService extends Service implements IMonitor, ITag {
 
     @Override
     public void onDestroy() {
+        isInitialized = false;
         if (null != crash) {
             crash.shutdown();
         }
@@ -74,9 +80,9 @@ public class MonitorService extends Service implements IMonitor, ITag {
 
     @Override
     public void onCrashServer() {
-        crash.initialize(getApplicationContext());
+        isInitialized = false;
         if (DEBUG) {
-            Log.i(TAG, String.format("%1$s%2$s", getResources().getString(R.string.crash_describe), BuildConfig.DVS_CONFIG_VERSION));
+            Log.i(TAG, String.format("%1$s %2$s", getResources().getString(R.string.crash_describe), BuildConfig.DVS_CONFIG_VERSION));
         }
     }
 
