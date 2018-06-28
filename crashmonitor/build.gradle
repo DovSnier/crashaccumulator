@@ -13,6 +13,8 @@ android {
         targetSdkVersion rootProject.ext.target_sdk_version
         versionCode rootProject.ext.version_code
         versionName rootProject.ext.version_name
+        buildConfigField 'String', 'DVS_CONFIG', "\"dvs_config\""
+        buildConfigField 'String', 'DVS_CONFIG_VERSION', "\"${rootProject.ext.version_name}\""
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
@@ -27,10 +29,18 @@ android {
     lintOptions {
         abortOnError false
     }
+
+//    libraryVariants.all {
+//        it.generateBuildConfig.enabled = false
+//    }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "com.android.support:support-annotations:${rootProject.ext.support_annotations_version}"
+    testImplementation "junit:junit:${rootProject.ext.junit_version}"
+    androidTestImplementation "com.android.support.test:runner:${rootProject.ext.runner_version}"
+    androidTestImplementation "com.android.support.test.espresso:espresso-core:${rootProject.ext.espresso_core_version}"
 }
 
 task sourcesJar(type: Jar) {

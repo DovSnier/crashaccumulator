@@ -1,4 +1,7 @@
-<resources>
-    <string name="app_name">crashmonitor</string>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <string name="app_name">crashMonitor</string>
+    <string name="crash_describe">the current log monitor server is started that is </string>
+    <string name="crash_started_describe" tools:ignore="TypographyEllipsis">the current log monitor server is running that is ready...</string>
+    <string name="crash_destroy_describe">the current log monitor server is destroy.</string>
     <string name="crash_error">程序出错啦!</string>
 </resources>

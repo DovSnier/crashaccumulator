@@ -1,5 +1,7 @@
 package com.dvsnier.monitor.config;
 
+import com.dvsnier.crash.BuildConfig;
+
 /**
  * to configure the environment variables set<br/>
  * Created by DovSnier on 2016/5/5.
@@ -10,9 +12,9 @@ package com.dvsnier.monitor.config;
 public class Config {
 
     /* the current config name */
-    public static String DVS_CONFIG_NAME = "dvs_config";
+    public static String DVS_CONFIG_NAME = BuildConfig.DVS_CONFIG;
     /* the current sdk version */
-    public static final String DVS_CONFIG_VERSION = "0.0.3";
+    public static final String DVS_CONFIG_VERSION = BuildConfig.DVS_CONFIG_VERSION;
 
 
     public static class Key {
