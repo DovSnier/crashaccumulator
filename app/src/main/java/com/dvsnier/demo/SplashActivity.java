@@ -1,15 +1,12 @@
 package com.dvsnier.demo;
 
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
-
-import com.dvsnier.crashmonitor.server.MoniterService;
 
 /**
  * the splash activity,as the app launcher page
@@ -58,40 +55,11 @@ public class SplashActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
-        initializedServerConfig();
         btn_exception = (Button) findViewById(R.id.btn_exception);
         btn_exception.setOnClickListener(onClickListener);
-    }
-
-    /**
-     * the initialized server config
-     *
-     * @version 0.0.2
-     */
-    protected void initializedServerConfig() {
-        Intent intent = new Intent(this, MoniterService.class);
-        startService(intent);
-    }
-
-    /**
-     * to closed server moniter
-     *
-     * @version 0.0.1
-     */
-    protected void stopServer() {
-        Intent intent = new Intent(this, MoniterService.class);
-        stopService(intent);
     }
 
     private void testException() {
         Integer integer = new Integer("str123");
     }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        stopServer();
-    }
-
-
 }
