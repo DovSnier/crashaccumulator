@@ -1,7 +1,7 @@
 apply plugin: 'com.android.library'
 apply plugin: 'com.novoda.bintray-release'
 
-def siteUrl = 'https://github.com/DovSnier/crashaccumulator/'
+def siteUrl = 'https://github.com/DovSnier/crashaccumulator.git'
 def gitUrl = 'git@github.com:DovSnier/crashaccumulator.git'
 
 android {
@@ -28,6 +28,7 @@ android {
 
     lintOptions {
         abortOnError false
+//        warning 'InvalidPackage'
     }
 
 //    libraryVariants.all {
@@ -81,5 +82,3 @@ publish {
     bintrayUser = user
     bintrayKey = key
 }
-
-
