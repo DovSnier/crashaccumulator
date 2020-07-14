@@ -6,15 +6,16 @@ ext {
     build_tools_version = '27.0.3'
 
     // 配置环境
-    min_sdk_version = 10
+    min_sdk_version = 14
     target_sdk_version = 27
-    version_code = 6
-    version_name = "0.0.4"
+    version_code = 7
+    version_name = "0.0.5"
 
     // support SDK 配置
-    support_appcompat_version = "26.0.0-alpha1"
-    support_recyclerview_version = "26.0.0-alpha1"
-    support_annotations_version = "27.1.1"
+    support_appcompat_version = "26.1.0"
+    support_recyclerview_version = "26.1.0"
+    support_annotations_version = "26.1.0"
+    support_v4_version = "26.1.0"
     junit_version = "4.12"
     runner_version = "1.0.2"
     espresso_core_version = "3.0.2"

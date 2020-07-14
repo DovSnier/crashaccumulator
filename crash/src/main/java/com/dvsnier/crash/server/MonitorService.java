@@ -1,9 +1,17 @@
 package com.dvsnier.crash.server;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationChannelGroup;
+import android.app.NotificationManager;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.os.Binder;
 import android.os.IBinder;
+import android.support.v4.app.NotificationCompat;
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.dvsnier.crash.BuildConfig;
@@ -27,6 +35,7 @@ public class MonitorService extends Service implements IMonitor, ITag {
     private final IBinder myBinder = new MyBinder();
     private final ICrash crash = CrashHandler.getInstance();
     private boolean isInitialized;
+    private int identifier;
 
     @Override
     public void onCreate() {
@@ -67,6 +76,7 @@ public class MonitorService extends Service implements IMonitor, ITag {
         if (null != crash) {
             crash.shutdown();
         }
+        stopForeground(true);
         if (DEBUG) {
             Log.i(TAG, getResources().getString(R.string.crash_destroy_describe));
         }
@@ -75,7 +85,10 @@ public class MonitorService extends Service implements IMonitor, ITag {
 
     @Override
     public void onMonitorEnvironment() {
-        DEBUG = getResources().getBoolean(R.bool.debug_monitor_server);
+        int identifier = getResources().getIdentifier("debug_monitor_server", "bool", getPackageName());
+        if (identifier > 0) {
+            DEBUG = getResources().getBoolean(identifier);
+        }
     }
 
     @Override
@@ -84,6 +97,45 @@ public class MonitorService extends Service implements IMonitor, ITag {
         if (DEBUG) {
             Log.i(TAG, String.format("%1$s %2$s", getResources().getString(R.string.crash_describe), BuildConfig.DVS_CONFIG_VERSION));
         }
+        int icon = getResources().getIdentifier("ic_launcher", "mipmap", getPackageName());
+        String title = getString(getResources().getIdentifier("app_name", "string", getPackageName()));
+        String channel_name = getString(R.string.crash_channel_name);
+        String channel_id = getString(R.string.crash_channel_id);
+        String group_name = getString(R.string.crash_group_name);
+        String group_id = getString(R.string.crash_group_id);
+        String crash_channel_describe = getString(R.string.crash_channel_describe);
+        String crash_content_describe = getString(R.string.crash_content_describe);
+        identifier = getResources().getInteger(R.integer.crash_notification_identifier);
+        NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            NotificationChannel notificationChannel = new NotificationChannel(channel_id, channel_name,
+                    NotificationManager.IMPORTANCE_LOW);
+            notificationChannel.setDescription(crash_channel_describe);
+//            notificationChannel.enableLights(true);
+//            notificationChannel.setLightColor(Color.RED);
+            notificationChannel.enableVibration(true);
+            notificationChannel.setVibrationPattern(new long[]{100, 200, 300, 400, 500, 400, 300, 200, 400});
+
+            NotificationChannelGroup notificationChannelGroup = new NotificationChannelGroup(group_id, group_name);
+            notificationChannel.setGroup(group_id);
+
+            if (null != notificationManager) {
+                notificationManager.createNotificationChannelGroup(notificationChannelGroup);
+                notificationManager.createNotificationChannel(notificationChannel);
+            }
+        }
+        Notification notification = new NotificationCompat.Builder(this, channel_id)
+                .setSmallIcon(icon)
+                .setLargeIcon(BitmapFactory.decodeResource(getResources(), icon))
+                .setAutoCancel(true)
+                .setBadgeIconType(NotificationCompat.BADGE_ICON_SMALL)
+                .setContentTitle(TextUtils.isEmpty(title) ? channel_name : title)
+                .setContentText(crash_content_describe)
+                .setOnlyAlertOnce(true)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
+                .setWhen(System.currentTimeMillis())
+                .build();
+        startForeground(identifier++, notification);
     }
 
     /**
