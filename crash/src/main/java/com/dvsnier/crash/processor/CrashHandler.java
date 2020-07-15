@@ -1,6 +1,7 @@
 package com.dvsnier.crash.processor;
 
 import android.content.Context;
+import android.net.Uri;
 import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -10,6 +11,9 @@ import com.dvsnier.crash.IUncaughtExceptionHandler;
 import com.dvsnier.crash.R;
 import com.dvsnier.monitor.common.BaseHandler;
 import com.dvsnier.monitor.common.FileHandler;
+import com.dvsnier.monitor.common.INotificationTips;
+import com.dvsnier.monitor.common.NotificationHandler;
+import com.dvsnier.monitor.utils.MIMEType;
 import com.dvsnier.monitor.utils.SimpleDateUtil;
 
 import java.io.File;
@@ -33,7 +37,8 @@ public class CrashHandler extends BaseHandler implements Thread.UncaughtExceptio
     protected Thread.UncaughtExceptionHandler uncaughtExceptionHandler;
     protected IUncaughtExceptionHandler uncaughtHandler;
     protected static CrashHandler crashHandler;
-    protected FileHandler handler;
+    protected FileHandler fileHandler;
+    protected NotificationHandler notificationHandler;
     protected String tips;
 
     private CrashHandler() {
@@ -73,9 +78,13 @@ public class CrashHandler extends BaseHandler implements Thread.UncaughtExceptio
     public final void shutdown() {
         super.shutdown();
         storageStrategy = StorageStrategy.STRATEGY_NONE;
-        if (null != handler) {
-            handler.shutdown();
-            handler = null;
+        if (null != fileHandler) {
+            fileHandler.shutdown();
+            fileHandler = null;
+        }
+        if (null != notificationHandler) {
+            notificationHandler.shutdown();
+            notificationHandler = null;
         }
         if (null != crashHandler) {
             crashHandler = null;
@@ -88,15 +97,26 @@ public class CrashHandler extends BaseHandler implements Thread.UncaughtExceptio
         uncaughtExceptionHandler = Thread.getDefaultUncaughtExceptionHandler();
         this.storageStrategy = storageStrategy;
         onStorageStrategy();
+        onNotifyStrategy();
     }
 
     private void onStorageStrategy() {
-        if (null == handler) {
-            handler = new FileHandler(getContext(), getStorageState(), isDebug());
+        if (null == fileHandler) {
+            fileHandler = new FileHandler(getContext(), getStorageState(), isDebug());
         }
         //noinspection ConstantConditions
-        if (handler instanceof ITask) {
-            ((ITask) handler).execute();
+        if (fileHandler instanceof ITask) {
+            ((ITask) fileHandler).execute();
+        }
+    }
+
+    private void onNotifyStrategy() {
+        if (null == notificationHandler) {
+            notificationHandler = new NotificationHandler(getContext(), getStorageState(), isDebug());
+        }
+        //noinspection ConstantConditions
+        if (notificationHandler instanceof ITask) {
+            ((ITask) notificationHandler).execute();
         }
     }
 
@@ -128,7 +148,7 @@ public class CrashHandler extends BaseHandler implements Thread.UncaughtExceptio
      * @version 0.0.2
      */
     private boolean handleException(final Throwable throwable) {
-        if (null == throwable || null == handler) {
+        if (null == throwable || null == fileHandler) {
             return false;
         }
         StringWriter writer = new StringWriter();
@@ -152,7 +172,7 @@ public class CrashHandler extends BaseHandler implements Thread.UncaughtExceptio
 
             @Override
             public void run() {
-                if (null == handler) return;
+                if (null == fileHandler) return;
                 Looper.prepare();
                 String value;
                 if (null != getTips() && !"".equals(getTips())) {
@@ -161,8 +181,8 @@ public class CrashHandler extends BaseHandler implements Thread.UncaughtExceptio
                     value = context.getResources().getString(R.string.crash_error);
                 }
                 Toast.makeText(context, value, Toast.LENGTH_LONG).show();
-                final String fileName = SimpleDateUtil.obtainFileName();
-                File file = new File(handler.getDirectory(), fileName);
+                final String fileName = SimpleDateUtil.obtainFileName(context, MIMEType.TYPE_LOG);
+                File file = new File(fileHandler.getDirectory(), fileName);
                 if (!file.exists()) {
                     try {
                         //noinspection ResultOfMethodCallIgnored
@@ -173,7 +193,7 @@ public class CrashHandler extends BaseHandler implements Thread.UncaughtExceptio
                         e.printStackTrace();
                     }
                 }
-                handler.writeAbnormityInfo(fileName);
+                fileHandler.writeAbnormityInfo(fileName);
                 FileOutputStream fos = null;
                 try {
                     fos = new FileOutputStream(file, true);
@@ -189,6 +209,12 @@ public class CrashHandler extends BaseHandler implements Thread.UncaughtExceptio
                     try {
                         if (null != fos) {
                             fos.close();
+                        }
+                        if (null != notificationHandler) {
+                            //noinspection ConstantConditions
+                            if (notificationHandler instanceof INotificationTips) {
+                                notificationHandler.onNotifyMsg(type, getTips(), file);
+                            }
                         }
                     } catch (IOException e) {
                         e.printStackTrace();

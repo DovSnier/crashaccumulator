@@ -1,6 +1,7 @@
 package com.dvsnier.monitor.utils;
 
 import android.annotation.SuppressLint;
+import android.content.Context;
 
 import java.text.SimpleDateFormat;
 
@@ -71,7 +72,24 @@ public class SimpleDateUtil {
         return sdf.format(System.currentTimeMillis());
     }
 
+    @Deprecated
     public static String obtainFileName() {
+        return "crash_" + getPrintToFileTime() + ".log";
+    }
+
+    public static String obtainFileName(Context context, MIMEType type) {
+        if (null != context) {
+            int identifier = context.getResources().getIdentifier("mime_type", "string", context.getPackageName());
+            if (identifier > 0) {
+                String value = context.getString(identifier);
+                if (MIMEType.TYPE_TEXT.toString().equals(value)) {
+                    return "crash_" + getPrintToFileTime() + ".txt";
+                }
+            }
+            if (type == MIMEType.TYPE_TEXT) {
+                return "crash_" + getPrintToFileTime() + ".txt";
+            }
+        }
         return "crash_" + getPrintToFileTime() + ".log";
     }
 }

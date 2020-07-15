@@ -47,7 +47,11 @@ public class MonitorService extends Service implements IMonitor, ITag {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (null != intent) {
-            DEBUG = intent.getBooleanExtra(KEY_MODE, MONITOR_DEFAULT_MODE);
+            boolean debug = intent.getBooleanExtra(KEY_MODE, MONITOR_DEFAULT_MODE);
+            if (debug) {
+                //noinspection ConstantConditions
+                DEBUG = debug;
+            }
             String tips = intent.getStringExtra(KEY_TIPS);
             crash.setDebug(DEBUG);
             if (crash instanceof CrashHandler && null != tips && !"".equals(tips)) {
