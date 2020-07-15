@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">crashAccumulatorDemo</string>
+    <!--    <string name="mime_type">TYPE_TEXT</string>-->
+    <!--    <string name="mime_type">TYPE_LOG</string>-->
 </resources>

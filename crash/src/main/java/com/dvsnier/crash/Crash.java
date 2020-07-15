@@ -25,7 +25,11 @@ public final class Crash implements ITag {
         //noinspection ConstantConditions
         if (null != context) {
             Intent intent = new Intent(context, MonitorService.class);
-            context.startService(intent);
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                context.startForegroundService(intent);
+            } else {
+                context.startService(intent);
+            }
         }
     }
 
@@ -41,7 +45,11 @@ public final class Crash implements ITag {
         if (null != context) {
             Intent intent = new Intent(context, MonitorService.class);
             intent.putExtra(MonitorService.KEY_MODE, mode);
-            context.startService(intent);
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                context.startForegroundService(intent);
+            } else {
+                context.startService(intent);
+            }
         }
     }
 
@@ -59,7 +67,11 @@ public final class Crash implements ITag {
             Intent intent = new Intent(context, MonitorService.class);
             intent.putExtra(MonitorService.KEY_MODE, mode);
             intent.putExtra(MonitorService.KEY_TIPS, tips);
-            context.startService(intent);
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                context.startForegroundService(intent);
+            } else {
+                context.startService(intent);
+            }
         }
     }
 
