@@ -3,8 +3,10 @@ apply from: 'dependencies.gradle'
 
 buildscript {
     repositories {
-        jcenter()
+        maven { url 'https://maven.aliyun.com/repository/jcenter' }
+        mavenCentral()
         google()
+        jcenter()
     }
     dependencies {
         classpath "com.android.tools.build:gradle:${build_gradle_version}"
@@ -16,8 +18,10 @@ buildscript {
 
 allprojects {
     repositories {
-        jcenter()
+        maven { url 'https://maven.aliyun.com/repository/jcenter' }
+        mavenCentral()
         google()
+        jcenter()
     }
 
     tasks.withType(Javadoc) {

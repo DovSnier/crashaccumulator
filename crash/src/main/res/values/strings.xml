@@ -4,4 +4,11 @@
     <string name="crash_started_describe" tools:ignore="TypographyEllipsis">the current log monitor server is running that is ready...</string>
     <string name="crash_destroy_describe">the current log monitor server is destroy.</string>
     <string name="crash_error">程序出错啦!</string>
+    <string name="crash_error_tips">发来一条异常信息</string>
+    <string name="crash_channel_id">crash_channel</string>
+    <string name="crash_channel_name">crash_channel</string>
+    <string name="crash_channel_describe">this is crash channel</string>
+    <string name="crash_group_id">crash_capture</string>
+    <string name="crash_group_name">Crash Capture</string>
+    <string name="crash_content_describe">crash capture is running…</string>
 </resources>

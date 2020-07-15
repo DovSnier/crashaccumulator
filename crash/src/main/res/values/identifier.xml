@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="ic_launcher" type="id" />
+    <item name="app_name" type="id" />
+    <item name="debug_monitor_server" type="id" />
+    <item name="mime_type" type="id" />
+</resources>
