@@ -1,9 +1,9 @@
 package com.dvsnier.monitor.common;
 
 import android.content.Context;
-import android.support.annotation.CallSuper;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.CallSuper;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.dvsnier.crash.processor.ICrash;
 import com.dvsnier.crash.processor.StorageStrategy;

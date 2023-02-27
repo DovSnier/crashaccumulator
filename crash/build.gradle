@@ -1,5 +1,4 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.novoda.bintray-release'
 
 def siteUrl = 'https://github.com/DovSnier/crashaccumulator.git'
 def gitUrl = 'git@github.com:DovSnier/crashaccumulator.git'
@@ -16,7 +15,7 @@ android {
         buildConfigField 'String', 'DVS_CONFIG', "\"dvs_config\""
         buildConfigField 'String', 'DVS_CONFIG_VERSION', "\"${rootProject.ext.version_name}\""
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
     }
 
     buildTypes {
@@ -38,11 +37,11 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation "com.android.support:support-annotations:${rootProject.ext.support_annotations_version}"
-    implementation "com.android.support:support-v4:${rootProject.ext.support_v4_version}"
+    implementation "androidx.annotation:annotation:${rootProject.ext.support_annotations_version}"
+    implementation "androidx.legacy:legacy-support-v4:${rootProject.ext.support_v4_version}"
     testImplementation "junit:junit:${rootProject.ext.junit_version}"
-    androidTestImplementation "com.android.support.test:runner:${rootProject.ext.runner_version}"
-    androidTestImplementation "com.android.support.test.espresso:espresso-core:${rootProject.ext.espresso_core_version}"
+    androidTestImplementation "androidx.test.ext:junit:${rootProject.ext.runner_version}"
+    androidTestImplementation "androidx.test.espresso:espresso-core:${rootProject.ext.espresso_core_version}"
 }
 
 task sourcesJar(type: Jar) {
@@ -70,16 +69,3 @@ Properties properties = new Properties()
 properties.load(project.rootProject.file('local.properties').newDataInputStream())
 def user = properties.getProperty("bintray.user")
 def key = properties.getProperty("bintray.apikey")
-publish {
-    repoName = 'AndroidComponent'
-    userOrg = 'dovsnier'
-    groupId = 'com.dvsnier'
-    artifactId = 'crash'
-    publishVersion = rootProject.ext.version_name
-    desc = "the android kit of the android crash monitor,that version is ${rootProject.ext.version_name}"
-    website = siteUrl
-    repository = gitUrl
-    autoPublish = true
-    bintrayUser = user
-    bintrayKey = key
-}
