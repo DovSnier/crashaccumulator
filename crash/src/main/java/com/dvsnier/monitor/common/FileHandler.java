@@ -2,8 +2,8 @@ package com.dvsnier.monitor.common;
 
 import android.content.Context;
 import android.os.Environment;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.util.Log;
 
 import com.dvsnier.crash.processor.ITask;

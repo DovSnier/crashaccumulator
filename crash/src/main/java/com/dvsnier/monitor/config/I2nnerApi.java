@@ -1,6 +1,6 @@
 package com.dvsnier.monitor.config;
 
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 /**
  * internal private api, unstable, and subsequent possible culling.
